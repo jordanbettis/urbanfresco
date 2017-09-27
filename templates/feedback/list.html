@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "feedback/macros.html" import make_item %}
+
+{% block extra_scripts %}
+
+<script type="text/javascript">
+  $("body").ready(function () {
+    var form = new NH.AjaxForm($("#feedback-link"), function () {
+         var popup = new NH.Popup(
+            "Your message has been saved and we will review it soon.",
+            {title: "Thank You!",
+             buttons: [new NH.Button("Ok", function(button)
+                      { button.popup.close() })]});
+       });
+  });
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="text-column">
+  {% if has_admin_perm %}
+    <div class="content-clear"></div>
+    <h1>Unpublished Feedback</h1>
+    <div class="content-clear"></div>
+    {% for feedback in unpublished_feedback %}
+      {{ make_item(feedback, has_admin_perm, request) }}
+    {% endfor %}
+    <div class="content-clear"></div>
+  {% endif %}
+    
+  <div class="content-clear"></div>
+  <h1>Feedback</h1>
+  <div class="content-clear"></div>
+    
+  {% for feedback in published_feedback %}
+    {{ make_item(feedback, has_admin_perm, request) }}
+  {% endfor %}
+    
+  {% if has_admin_perm %}
+    <div class="content-clear"></div>
+    <h1>Dismissed Feedback</h1>
+    <div class="content-clear"></div>
+    <ul class="dismised-feedback">
+      {% for feedback in dismissed_feedback %}
+        <li>
+          <a href="{{ request.url_for('feedback-view', id=feedback.id) }}">
+            <b>{{ feedback.name }}</b>
+            on <b>{{ feedback.created.strftime('%B %d, %Y %I:%M%p') }}</b></li>
+          </a>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+    <div class="content-clear"></div>
+    <div class="content-bottom-centered">
+      <a id="feedback-link" class="button"
+         href="{{ request.url_for('feedback-submit') }}">
+        Leave Feedback
+      </a>
+    </div>
+</div>
+    
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Verification{% endblock %}
+
+{% block content %}
+  {% if request.user.verified %}
+    <p>Thanks for completing the verification!</p>
+  {% else %}
+    <p>Verification failed</p>
+  {% endif %}
+{% endblock %}

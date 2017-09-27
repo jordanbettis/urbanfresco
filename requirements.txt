@@ -1,0 +1,17 @@
+nose
+webob
+routes
+jinja2
+ipython
+sqlalchemy
+sqlalchemy-migrate
+geoalchemy
+psycopg2
+pylibmc
+wtforms
+python-dateutil==1.5
+lxml
+tornado
+pillow
+pexif
+jsmin

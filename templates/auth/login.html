@@ -1,0 +1,19 @@
+{% extends "popup-base.html" %}
+{% import "macros.html" as macros %}
+
+{% block title %}Login{% endblock %}
+
+{% block popup_content %}
+<h1>Login</h1>
+<div class="form">
+  {{ macros.form_errors(form, errors) }}
+  <form method="POST" action="{{ request.path_qs }}">
+    {{ csrf_token("form") }}
+    {{ macros.field(form.name) }}
+    {{ macros.field(form.email) }}
+    <div>Please enter your username <strong>or</strong> your email address</div>
+    {{ macros.field(form.password) }}
+    {{ macros.submit("Login", request) }}
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{# -*- text -*- -#}
+{% macro layer(name) %}
+  <Layer name="{{ name }}" status="on" srs="{{ srs }}">
+    <StyleName>{{ name }}</StyleName>
+    <Datasource>
+      <Parameter name="type">postgis</Parameter>
+      <Parameter name="host">localhost</Parameter>
+      <Parameter name="dbname">{{ db['db'] }}</Parameter>
+      <Parameter name="user">{{ db['user'] }}</Parameter>      
+      <Parameter name="password">{{ db['pass'] }}</Parameter>
+      <Parameter name="table">({{ caller()|escape }}) as poly</Parameter>
+      <Parameter name="estimate_extent">true</Parameter>
+    </Datasource>
+  </Layer>
+{%- endmacro %}
+
+{% macro style(name, rule) %}
+  <Style name="{{ name }}">
+    <Rule>
+      {{ rule }}
+    </Rule>
+  </Style>
+{%- endmacro %}
+
+{% macro linestyle(name, color, width, opacity="1.0", style="round") %}
+  <Style name="{{ name }}">
+    <Rule>
+      <LineSymbolizer stroke="{{ color }}" stroke-width="{{ width * meters }}"
+                      stroke-opacity="{{ opacity }}" stroke-linejoin="{{ style }}"
+                      stroke-linecap="{{ style }}" />
+    </Rule>
+  </Style>
+{%- endmacro %}
+  
+{% macro polygonstyle(name, color, opacity="1.0") %}
+  <Style name="{{ name }}">
+    <Rule>
+      <PolygonSymbolizer fill="{{ color }}" fill-opacity="{{ opacity }}" />
+    </Rule>
+  </Style>  
+{%- endmacro %}
+  
+{% macro pointstyle(name, color, width, height, opacity="1.0") %}
+  <Style name="{{ name }}">
+    <Rule>
+      <PointSymbolizer fill="{{ color }}" fill-opacity="{{ opacity }}" />
+    </Rule>
+  </Style>  
+{%- endmacro %}
+
+{% macro collection_names(
+            name, font_size, ml=False, max_ratio=None, min_ratio=None,
+            max_line_ratio=None, min_line_ratio=None) %}
+  <Style name="{{ name }}">
+    <Rule>
+      <TextSymbolizer
+          allow-overlap="true" face-name="DejaVu Sans Book"
+          fill="#ffbc11" placement-type="dummy"
+          placement="point" size="{{ font_size }}"
+          halo-radius="1" halo-fill="#002c2b">
+        [n]
+      </TextSymbolizer>
+    </Rule>
+  </Style>
+
+  {% call layer(name) -%}
+     select upper(name{% if ml %}_multiline{% endif %}) as n,
+            st_centroid(label) as way
+        from nh_images_collection
+        where true
+        {% if max_ratio %}
+           and label_length / length(name) <= {{ max_ratio }}
+        {% endif %}
+        {% if min_ratio %}
+           and label_length / length(name) >= {{ min_ratio }} 
+        {% endif %}
+        {% if max_line_ratio %}
+           and label_length / max_line_length <= {{ max_line_ratio }} 
+        {% endif %}
+        {% if min_line_ratio %}
+           and label_length / max_line_length >= {{ min_line_ratio }} 
+        {% endif %}
+  {%- endcall %}
+{% endmacro %}
+
+
+{% macro collection_paths(name, font_size, max_line_ratio=None) %}
+  <Style name="{{ name }}-paths">
+    <Rule>
+      <LineSymbolizer stroke="#ffbc11" stroke-width="2"
+                      stroke-linejoin="round" stroke-linecap="round"
+                      stroke-dasharray="[2,4]" />
+    </Rule>
+  </Style>
+
+  {% call layer(name ~ '-paths') %}
+     select label_out_path as way from nh_images_collection
+        where true
+        {% if max_line_ratio %}
+           and label_length / max_line_length <= {{ max_line_ratio }} 
+        {% endif %}
+  {% endcall %}
+
+  {% for direc in ['right', 'left'] %}
+    <Style name="{{ name }}-{{ direc }}">
+      <Rule>
+        <TextSymbolizer
+           allow-overlap="true" face-name="DejaVu Sans Book" fill="#ffbc11"
+           placement-type="dummy" placement="point" size="{{ font_size }}"
+           halo-radius="1" halo-fill="#002c2b" horizontal-alignment="{{ direc }}"
+           dx="{% if direc=='left' %}-{% endif %}2">
+          [n]
+        </TextSymbolizer>
+      </Rule>
+    </Style>
+
+    {% call layer(name ~ "-" ~ direc) -%}
+       select upper(name) as n, label_out as way from nh_images_collection
+        where label_out_align = '{{ direc }}'
+        {% if max_line_ratio %}
+           and label_length / max_line_length <= {{ max_line_ratio }} 
+        {% endif %}
+    {%- endcall %}
+  {% endfor %}
+{% endmacro %}

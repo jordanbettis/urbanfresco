@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?> {# -*- text -*- #}
+<!DOCTYPE Map>
+<Map background-color="#0a837f" minimum-version="0.7.2" srs="{{ srs }}">
+
+  {% import "mapnik/macros.xml" as macros with context %}
+  
+  {{ macros.polygonstyle("land", "#044e4b") }}
+  <Layer name="land" status="on" srs="{{ srs }}">
+    <StyleName>land</StyleName>
+    <Datasource>
+      <Parameter name="type">shape</Parameter>
+      <Parameter name="file">{{ coastline }}</Parameter>
+    </Datasource>
+  </Layer>
+
+  {{ macros.polygonstyle("nh-active-land", "#076461", 5) }}     
+  {% call macros.layer("nh-active-land") %}
+     select distinct nh_images_collection.way as way from nh_images_collection
+     join nh_images_image on nh_images_collection.id = nh_images_image.collection_id
+     where nh_images_image.available = true
+  {% endcall %}
+     
+  {{ macros.polygonstyle("natural", "#0a837f") }}
+  {% call macros.layer("natural") %}
+     select way from planet_osm_polygon where "natural" in (
+         'wetland', 'bay', 'wetlands', 'water', 'swamp', 'marsh', 'waterway')
+        or waterway is not null
+  {% endcall %}
+
+  {{ macros.polygonstyle("park", "#009b2c") }}
+  {% call macros.layer("park") %}
+     select way from planet_osm_polygon where leisure in ('garden',
+        'common', 'nature_reserve', 'park', 'dog_park', 'golf_course')
+  {% endcall %}
+  
+  {{ macros.polygonstyle("greenspace", "#009b2c") }}
+  {% call macros.layer("greenspace") %}
+     select way from planet_osm_polygon where landuse in (
+       'meadow', 'recreation_ground', 'conservation', 'village_green', 'golf',
+       'grass', 'cemetery', 'recreation_ground', 'forest',
+       'greenhouse_horticulture')
+  {% endcall %}
+  
+  {{ macros.polygonstyle("water-amenity", "#0a837f") }}
+  {% call macros.layer("water-amenity") %}
+     select way from planet_osm_polygon where amenity in ('fountain', 'swimming_pool')
+  {% endcall %}
+
+  {{ macros.linestyle("breakwater", "#002c2b", 20) }}
+  {% call macros.layer("breakwater") %}
+     select way from planet_osm_line where waterway = 'dam'
+  {% endcall %}
+
+  {{ macros.linestyle("runway", "#002c2b", 60) }}
+  {% call macros.layer("runway") %}
+     select way from planet_osm_line where aeroway = 'runway'
+  {% endcall %}
+
+  {{ macros.linestyle("taxiway", "#002c2b", 20) }}
+  {% call macros.layer("taxiway") %}
+     select way from planet_osm_line where aeroway = 'taxiway'
+  {% endcall %}
+
+  {{ macros.polygonstyle("building", "#a73738") }}
+  {% call macros.layer("building") %}
+     select way from planet_osm_polygon where "building" is not null
+  {% endcall %}
+
+  {{ macros.linestyle("building-outline", "#ce6865", 5) }}
+  {% call macros.layer("building-outline") %}
+     select way from planet_osm_polygon where "building" is not null
+  {% endcall %}
+  
+  {% if meters_per_pixel <= 4 %}
+    {{ macros.linestyle("highway-outline", "#0a837f", 26) }}  
+    {% call macros.layer("highway-outline") %}
+       select way from planet_osm_line where highway in ('unclassified',
+           'motorway', 'tertiary', 'trunk', 'tertiary_link',
+           'motorway_link', 'secondary_link', 'primary_link', 'crossing',
+           'truck_link', 'living_street', 'residential', 'road', 'primary',
+           'secondary', 'raceway')
+    {% endcall %}
+
+  {% endif %}
+
+  {% if meters_per_pixel <= 16 %}
+    {{ macros.linestyle("highway", "#002c2b", 19) }}
+    {% call macros.layer("highway") %}
+       select way from planet_osm_line where highway in ('unclassified',
+           'motorway', 'tertiary', 'trunk', 'tertiary_link', 'motorway_link',
+           'secondary_link', 'primary_link', 'crossing', 'truck_link',
+           'living_street', 'residential', 'road', 'primary', 'secondary',
+           'raceway')
+      {% endcall %}
+             
+  {% else %}
+    {{ macros.linestyle("highway", "#002c2b", 19) }}
+    {% call macros.layer("highway") %}
+       select way from planet_osm_line where highway in (
+           'trunk', 'primary_link', 'road', 'primary', 'secondary',
+           'motorway', 'raceway')
+    {% endcall %}
+  {% endif %}
+  
+  {% if meters_per_pixel <= 8 %}
+    {{ macros.linestyle("path", "#002c2b", 5) }}
+    {% call macros.layer('path',) %}
+       select way from planet_osm_line where highway in (
+            'track', 'footway', 'steps', 'service', 'pedestrian',
+            'cycleway', 'cycleway; footway')
+    {% endcall %}
+  {% endif %}
+
+  {{ macros.linestyle('subway-outline', '#c18a26', 17) }}
+  {% call macros.layer('subway-outline') %}
+       select way from planet_osm_line where railway = 'subway'
+  {% endcall %}
+  
+  {{ macros.linestyle('subway', '#a16825', 10) }}
+  {% call macros.layer('subway') %}
+       select way from planet_osm_line where railway = 'subway'
+  {% endcall %}
+
+  {{ macros.linestyle('railway', '#c18a26', 5) }}
+  {% call macros.layer('railway') %}
+     select way from planet_osm_line where railway is not null and railway not in (
+        'subway', 'platform')
+  {% endcall %}
+
+  <Style name="station-marker">
+    <Rule><MarkersSymbolizer stroke="#c18a26" fill="#a16825" width="{{ 17 * meters }}"/></Rule>
+  </Style>  
+  {% call macros.layer('station-marker') %}
+     select way from planet_osm_point where railway = 'station'
+  {% endcall %}
+
+  {{ macros.linestyle('nh-border', '#b04857', 2) }}
+  {% call macros.layer('nh-border') %}
+     select way from nh_images_collection
+  {% endcall %}
+     
+  {% if meters_per_pixel <= 8 %}
+    <Style name="road-names">
+      <Rule>
+        <TextSymbolizer allow-overlap="false" face-name="DejaVu Sans Book"
+                        placement="line" fill="#0a837f" placement-type="simple"
+                        avoid-edges="true" minimum-distance="20" size="9"
+                        halo-radius="1" halo-fill="#002c2b">
+          [name]
+        </TextSymbolizer>
+      </Rule>
+    </Style>
+   
+    {% if meters_per_pixel <= 2 %}
+      {% call macros.layer("road-names") %}
+         select trim(leading 'SOUTH' from trim(leading 'EAST' from
+                trim(leading 'NORTH' from trim(leading 'WEST' from upper(name)))))
+              as name, way from planet_osm_line
+              where highway in ('unclassified', 'motorway', 'tertiary', 'trunk',
+                                'residential', 'road', 'primary', 'secondary')
+                 and position('LOWER' in upper(name)) = 0
+      {% endcall %}
+                              
+    {% elif meters_per_pixel <= 8 %}
+      {% call macros.layer("road-names") %}
+         select trim(leading 'SOUTH' from trim(leading 'EAST' from
+                trim(leading 'NORTH' from trim(leading 'WEST' from upper(name)))))
+              as name, way from planet_osm_line where highway in (
+                    'motorway', 'primary', 'secondary')
+      {% endcall %}
+    {% endif %}
+  {% endif %}
+
+  {% if meters_per_pixel <= 4 %}
+    {{ macros.collection_names("standard-names", 12) }}
+  {% elif meters_per_pixel > 4  and meters_per_pixel <= 8 %}
+    {{ macros.collection_names("standard-names", 10) }}
+  {% elif meters_per_pixel > 8  and meters_per_pixel <= 16 %}
+    {{ macros.collection_names("standard-names", 10, min_ratio=100) }}
+    {{ macros.collection_names("multiline-names", 10, ml=True, max_ratio=100) }}
+  {% elif meters_per_pixel > 16 and meters_per_pixel <= 32 %}
+    {{ macros.collection_names("standard-names", 10, min_ratio=175) }}
+    {{ macros.collection_names(
+          "multiline-names", 10, ml=True, min_line_ratio=150, max_ratio=175) }}
+    {{ macros.collection_paths("name-paths", 10, max_line_ratio=150) }}
+  {% else %}
+    {{ macros.collection_names("standard-names", 8, min_ratio=290) }}
+    {{ macros.collection_names(
+          "multiline-names", 8, ml=True, min_line_ratio=270, max_ratio=290) }}
+    {{ macros.collection_paths("name-paths", 8, max_line_ratio=270) }}
+  {% endif %}
+  
+ </Map>

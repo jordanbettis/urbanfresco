@@ -1,0 +1,19 @@
+{% extends "popup-base.html" %}
+{% import "macros.html" as macros %}
+
+{% block title %}Register{% endblock %}
+
+{% block popup_content %}
+<h2>Registration</h2>
+<div class="form">
+  {{ macros.form_errors(form, errors) }}
+  <form method="POST" action="{{ request.path_qs }}">
+    {{ csrf_token("form") }}
+    {{ macros.field(form.name) }}
+    {{ macros.field(form.email) }}
+    {{ macros.field(form.password) }}
+    {{ macros.field(form.confirm) }}
+    {{ macros.submit("Register", request) }}
+  </form>
+</div>
+{% endblock %}

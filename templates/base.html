@@ -1,0 +1,70 @@
+{% if not request.headers["x-ajax"] -%}
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>UrbanFresco:
+      {% block title %}
+        Photographs of Life in the Neighborhoods of Chicago
+      {% endblock %}
+    </title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script type="text/javascript" src="/static/contrib/modernizr.js"></script>
+    {% block styles %}
+      <link rel="stylesheet" type="text/css" href="/static/contrib/theme/default/style.css">
+      <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+      <link rel="shortcut icon" href="/static/img/favicon.ico">
+    {% endblock %}
+    {% block extra_styles %}{% endblock %}
+    {% block scripts %}
+      <script type="text/javascript" src="/static/contrib/merged.js"></script>
+      <script type="text/javascript" src="/static/contrib/OpenLayers.js"></script>
+      <script type="text/javascript" src="{{ request.url_for('staticpage-jsconfig') }}"></script>
+      <script type="text/javascript" src="/static/client/nh.js"></script>
+    {% endblock %}
+    {% block extra_scripts %}{% endblock %}
+  </head>
+  <body>
+    {% block site_header %}
+    <div id="site-header">
+      <div id="logo">
+        <a href="/">
+          <img src="/static/img/urbanfresco.png" alt="CityFabric">
+        </a>
+      </div>
+      <div id="site-header-left">
+        <ol>
+          <li><a href="{{ request.url_for('staticpage-about') }}">ABOUT</a></li>
+          <li><a href="{{ request.url_for('images-newest') }}">NEWEST</a></li>
+          <li><a href="{{ request.url_for('images-best') }}">BEST</a></li>
+          <li><a href="{{ request.url_for('feedback-list') }}">FEEDBACK</a></li>
+        </ol>
+      </div>
+      <div id="site-header-right">
+        <div id="user-console">
+          {% if request.user.authenticated %}
+            Welcome, {{ request.user.display_name }}
+          <br>
+          <a href="{{ request.url_for('images-userroot',
+                        map_username=request.user.name) }}">home</a> |
+          <a id="edit-password-link"
+             href="{{ request.url_for('auth-edit-password') }}">change password</a> |
+          <a href="{{ request.url_for('auth-logout') }}">logout</a>
+          {% else %}
+          Celebrate our neighborhoods </br>
+            <a id="login-link" href="{{ request.url_for('auth-login') }}">login</a> |
+            <a id="register-link" href="{{ request.url_for('auth-register') }}">
+              register
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endblock %}    
+{% endif %}
+    {% block content %}{% endblock %}
+{% if not request.headers["x-ajax"] %}
+  </body>
+</html>
+{% endif %}

@@ -1,0 +1,37 @@
+{% extends "popup-base.html" %}
+{% import "macros.html" as macros %}
+
+{% block title %}Submit Feedback{% endblock %}
+
+{% block popup_content %}
+    <h1>Submit Feedback</h1>
+    <div class="form">
+      {{ macros.form_errors(form, errors) }}
+      <form method="POST" action="{{ request.path_qs }}">
+        {{ csrf_token("form") }}
+        {{ macros.field(form.name) }}
+        {{ macros.field(form.email) }}
+        <div class="form-info">
+          Your email address will allow us to respond to you.<br>
+          It will not be displayed publicly.
+        </div>
+        <div class="form-field {% if form.message.errors %}error-field{% endif %}">
+
+          {{ form.message(rows=8, cols=55) }}
+          {% if form.message.errors %}
+          <ol class="form-field-errors">
+            {% for error in form.message.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ol>
+          {% endif %}
+        </div>
+        <div class="form-info">
+          If you want us to publish your message on this feedback page, click<br>
+          the box below. Otherwise, your message will be kept private.
+        </div>
+        {{ macros.checkbox_field(form.can_publish) }}
+        {{ macros.submit("Submit", request) }}
+      </form>
+    </div>
+{% endblock %}

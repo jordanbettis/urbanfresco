@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+
+{% block title %}Verify Account{% endblock %}
+
+{% block content %}
+  {{ macros.form_errors(form, errors) }}
+  <form method="POST" action="{{ request.path_qs }}">
+    {{ macros.field(form.dob) }}
+    {{ macros.field(form.email) }}
+    <input type="submit" value="Verify Account">
+  </form>
+{% endblock %}

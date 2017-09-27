@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block extra_scripts %}
+  <script type="text/javascript">
+    $("body").ready(function () {
+      var jsVars = {{ jsvars|tojson|safe }};
+      var ajaxParams = {'collection_id': jsVars.collectionId,
+                        'user_name': jsVars.userName,
+                        'order': jsVars.order};
+
+      NH.collection = new NH.Collection(
+          jsVars.layerName, jsVars.baseViewPath, jsVars.center);
+      NH.collection.load(jsVars.collectionPath, ajaxParams);
+    
+      {% if image %}
+         NH.collection.loadSlideshow("{{ image.key }}");
+      {% endif %}
+
+      {% if not collection and not special and images.count() > 0 %}
+         if($(window).height() > 500)
+            NH.collection.loadSlider("{{ images.first().key }}", ajaxParams);
+      {% endif %}
+
+      {% if show_user_controls %}
+         NH.collection.initUserControls();
+      {% endif %}
+
+      window.history.replaceState(
+         {url: "{{ request.path_qs }}"}, "", "{{ request.path_qs }}");
+
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+
+  <div id="content-container">
+    {% include "/images/list-ajax.html" %}
+  </div>
+
+  {########################## SLIDE SHOW FRAMEWORK #########################}
+  
+  <div id="slide-show" {% if not image %}style="display:none"{% endif %}>
+    <div id="ss-viewport">
+      {% if image %}
+      <div style="width: 800px; margin-left: auto; margin-right: auto;">
+        <img src="{{ image.url('view') }}">
+      </div>
+      {% endif %}
+    </div>
+    <div id="ss-top-bar" class="ss-widget-bar">
+      <a class="ss-nh-name" href="/">
+        {% if image %}{{ image.collection.name }}{% endif %}
+      </a>
+      <div class="slideshow-controls">
+        <div class="ss-minimize minimize-control"></div>
+        <div class="ss-close close-control"></div>
+      </div>
+    </div>
+    <div id="ss-bottom-bar" class="ss-widget-bar">
+      <div class="ss-user-icon">
+        <img src="/static/img/logo-tiny.png">
+      </div>
+      <div class="ss-user">
+        <a class="name" href="/">
+          {% if image %}{{ image.user.display_name }}{% endif %}
+        </a>
+        <div class="image-description">
+            {% if image %}{{ image.data.description }}{% endif %}
+        </div>
+      </div>
+      <a class="ss-utils control" href="" style="display:none">
+        <div class="label">Tools</div>
+      </a>
+      <a class="ss-where control" href="" style="display:none">
+        <div class="label">Location</div>
+      </a>
+      <div class="ss-location control" style="display:none">
+        <div class="label">Location</div>
+      </div>
+      <div class="ss-views ss-info">
+        <div class="value"></div>
+        <div class="label">Views</div>
+      </div>
+      <div class="ss-upvote ss-upvote-widget">
+        <div class="ss-upvote-label">Upvote</div>
+      </div>
+      <div class="ss-votes ss-info">
+        <div class="value"></div>
+        <div class="label">Votes</div>
+      </div>
+    </div>
+    <div class="ss-previous ss-slide-control"></div>
+    <div class="ss-next ss-slide-control"></div>
+  </div>
+
+  <div id="ss-minimized">
+    <img src="/static/img/notavail-thumb.jpg">
+    <span class="minimized-name">Slideshow</span>
+  </div>
+
+  {########################## SLIDER FRAMEWORK #########################}
+  
+  <div id="slider">
+    <div class="slider-previous"></div>
+    <div id="slider-viewport"></div>
+    <div class="slider-next"></div>
+  </div>
+  
+  {################################ MAP #################################}
+  
+  <div id="map">
+    <div id="nav"></div>
+    <div id="zoom-controls">
+      <div class="zoom-in control"></div>
+      <div class="zoom-out control"></div>
+    </div>
+    <div id="copyright" class="map-widget">
+        Ⓒ Lifting Bridges Ltd<br>
+        Map data Ⓒ OpenStreetMap contributors, CC BY-SA
+    </div>
+  </div>
+
+{% endblock %}

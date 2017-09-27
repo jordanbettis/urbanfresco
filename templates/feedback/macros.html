@@ -1,0 +1,51 @@
+
+{% macro make_item(feedback, has_admin_perm, request) %}
+   <div class="feedback">
+     <div class="title">
+       From
+       <b>{{ feedback.name }}</b> on
+       <b>{{ feedback.created.strftime('%B %d, %Y') }}</b>
+       {% if feedback.read %}
+         <a href="{{ request.url_for('feedback-view', id=feedback.id) }}">
+           [show]
+         </a>
+       {% endif %}
+     </div>
+     
+     <div class="message">
+       {{ feedback.message|escapeandbreak|urlize }}
+     </div>
+
+     
+
+     {% if has_admin_perm %}
+        <div class="admin-menu">
+
+          {% if has_admin_perm and feedback.email %}
+            <a href="mailto:{{ feedback.email }}">{{ feedback.email }}</a> &nbsp;
+          {% endif %}
+
+          {% if feedback.can_publish and not feedback.published %}
+            <a href="{{ request.url_for('feedback-publish', id=feedback.id) }}">
+               [publish comment]
+            </a> &nbsp;
+          {% elif not feedback.can_publish %}
+            [do not publish] &nbsp;
+          {% endif %}
+
+          {% if feedback.published %}
+            <a href="{{ request.url_for('feedback-unpublish', id=feedback.id) }}">
+               [unpublish comment]
+            </a> &nbsp;
+          {% endif %}
+            
+          {% if not feedback.dismissed %}
+            <a href="{{ request.url_for('feedback-dismiss', id=feedback.id) }}">
+               [dismiss]
+            </a> &nbsp;
+          {% endif %}
+
+        </div>
+     {% endif %}
+   </div>
+{% endmacro %}

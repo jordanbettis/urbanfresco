@@ -1,0 +1,25 @@
+{% extends "popup-base.html" %}
+{% import "macros.html" as macros %}
+
+{% block title %}Change Photographer's Profile{% endblock %}
+
+{% block popup_content %}
+    <h1>Change Photographer's Profile</h1>
+    <div class="form">
+      {{ macros.form_errors(form, errors) }}
+      <form method="POST" action="{{ request.path_qs }}">
+        {{ csrf_token("form") }}
+        <div class="form-field {% if form.profile.errors %}error-field{% endif %}">
+          {{ form.profile(rows=8, cols=55) }}
+          {% if form.profile.errors %}
+          <ol class="form-field-errors">
+            {% for error in form.profile.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ol>
+          {% endif %}
+        </div>
+        {{ macros.submit("Change", request) }}
+      </form>
+    </div>
+{% endblock %}

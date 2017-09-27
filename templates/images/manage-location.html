@@ -1,0 +1,64 @@
+
+{% extends "base.html" %}
+
+{% block title %}Location Manager{% endblock %}
+
+{% block extra_scripts %}
+  <script type="text/javascript">
+    $("body").ready(function () {
+      var map = new NH.Map("{{ image.user.name }}", {{ center }});
+      locationLayer = map.enableImageLocation();
+      {% if image.way %}
+        locationLayer.addFeatures([new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point({{ coords[0] }}, {{ coords[1] }})
+        )]);
+      {% endif %}
+      map.enableNavigation(
+            NH.changeLocationClick("{{ image.key }}", map, locationLayer));
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+    
+  <div id="map">
+    <div id="nav"></div>
+    <div id="zoom-controls">
+      <div class="zoom-in control"></div>
+      <div class="zoom-out control"></div>
+    </div>
+    <div id="copyright" class="map-widget">
+        Ⓒ Lifting Bridges Ltd<br>
+        Map data Ⓒ OpenStreetMap contributors, CC BY-SA
+    </div>
+  </div>
+
+  {# Reusing the user-profile style to display the image info #}
+  <div id="user-profile">
+    <div class="up-avatar">
+      <a href="{{ request.url_for('images-usershow',
+               map_username=image.user.name, colkey=image.collection.url_key,
+               image_key=image.key) }}">
+        <img src="{{ image.url('thumb') }}">
+      </a>
+    </div>
+    <div class="up-info">
+      <div class="up-name">Photograph Location</div>
+      <div class="up-profile">
+        Clicking once on the map places the marker. If you wish to
+        move the marker after it has been placed, simply click the new
+        location and the marker will move.
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-centered">
+    <a class="button"
+       href="{{ request.url_for('images-usershow',
+             map_username=image.user.name, colkey=image.collection.url_key,
+             image_key=image.key) }}">
+      Save Changes
+    </a>
+  </div>
+
+{% endblock %}

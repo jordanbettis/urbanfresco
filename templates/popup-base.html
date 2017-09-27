@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if not request.headers["x-ajax"] -%}
+<div class="synpopup-container">
+  <div class="synpopup">
+{% endif %}
+    {% block popup_content %}{% endblock %}
+{% if not request.headers["x-ajax"] -%}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

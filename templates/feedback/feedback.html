@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "feedback/macros.html" import make_item %}
+
+{% block content %}
+
+<div class="text-column">
+  <div class="content-clear"></div>
+  <h1>Dismissed Feedback Item</h1>
+  <div class="content-clear"></div>
+
+    {{ make_item(feedback, has_admin_perm, request) }}
+
+  <div class="center">
+    <a class="button" href="{{ request.url_for('feedback-list') }}">
+      Go back to list
+    </a>
+  </div>
+</div>
+
+{% endblock %}
+

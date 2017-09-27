@@ -1,0 +1,186 @@
+
+{% if collection %}
+<div id="content-column">
+  <div class="content-clear">
+    <h1>{{ collection.name }} {% if user_info %}by {{ user_info.display_name }}{% endif %}</h1>
+    <div class="content-controls">
+      <div class="minimize minimize-control"></div>
+      <div class="close close-control"></div>
+    </div>
+  </div>
+  
+  <div class="content-clear">
+    <div class="content-pad">
+      {% if images.count() > 0 %}
+      <ol class="thumbnails">
+        {% for image in images %}
+        <li>
+          <a {% if user_info -%}
+               href="{{ request.url_for('images-usershow', 
+                           map_username=user_info['name'], 
+                           colkey=image.collection.url_key, 
+                           image_key=image.key) }}"
+             {%- else -%}
+               href="{{ request.url_for('images-show', 
+                     colkey=image.collection.url_key, image_key=image.key) }}"
+             {%- endif -%}>
+            <img src="{{ image.url('thumb') }}" alt="loading..">
+          </a>
+        </li>
+        {% endfor %}
+      </ol>
+      {% elif not user_info and request.user.authenticated %}
+        <ol class="thumbnails"></ol>
+        <div class="request"
+          <h3>Can you help?</h3>
+          <p>Have you taken photographs of this neighborhood? Can you?</p>
+          <p>Contributing very easy. Just drag your photos from your file
+            browser and drop them here, or click the button below to
+            select them manually. Note that you can select multiple
+            files at once using the control and shift keys, or the
+            command key on Mac.</p>
+        </div>
+      {% elif user_info and user_info['id'] == request.user.id %}
+        <ol class="thumbnails"></ol>
+        <div class="request">
+          <h3>You haven't uploaded anything for {{ collection.name }}</h3>
+          <p>Contributing very easy. Just drag your photos from your file
+            browser and drop them here, or click the button below to
+            select them manually. Note that you can select multiple
+            files at once using the control and shift keys, or the
+            command key on Mac.</p>
+        </div>
+      {% else %}
+        <ol class="thumbnails"></ol>
+        <div class="request">
+          <h3>Can you help?</h3>
+          <p>Have you taken photographs of this neighborhood? Can you?</p>
+          <p>Contributing is very easy.</p>        
+          <p>First, <a href="{{ request.url_for('auth-login') }}">login</a> or
+            <a href="{{ request.url_for('auth-register') }}">register</a>.
+            Registration takes just seconds. You don't even need an email address.</p>
+          <p>Then, drag your photos from your file browser
+            and drop them here, or click the "add photos" button
+            to select them manually. Note that you can select
+            multiple files at once using the control and shift
+            keys, or the command key on Mac.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="content-clear"></div>
+  <div id="upload">
+    <form id="upload-form" method="post" style="display:none"
+          action="{{ request.url_for('images-put', colid=collection.id)}}"
+          enctype="multipart/form-data">
+      {{ csrf_token("form") }}
+      <input id="upload-input" type="file" name="files[]" multiple
+             data-url="{{ request.url_for('images-put', colid=collection.id)}}"
+             data-sequential-uploads="true"
+             data-form-data='{"script": "true"}'
+             accept="image/jpeg">
+    </form>
+    {% if request.user.authenticated %}
+      <button type="button" onClick="$('#upload-input').click()">Add Photos</button>
+    {% endif %}
+  </div>
+</div>
+
+<div id="content-minimized">
+  <div class="icon minimized-icon"></div>
+  <span class="minimized-name">{{ collection.name }}</span>
+</div>
+
+{% elif user_info %}
+
+{########################## USER PROFILE  #########################}
+
+<div id="user-profile">
+  <div class="up-avatar">
+    <img src="{{ user_info.profile_avatar }}">
+    {% if show_user_controls %}
+      <a href="javascript:void(0)" class="avatar-upload"
+         onClick="$('#avatar-upload-input').click()">
+        [change avatar]
+      </a>
+      <form id="avatar-upload-form" method="post" style="display:none"
+            action="{{ request.url_for('auth-put-avatar') }}"
+            enctype="multipart/form-data">
+        {{ csrf_token("form") }}
+        <input id="avatar-upload-input" type="file" name="files[]" 
+               data-url="{{ request.url_for('auth-put-avatar')}}"
+               data-form-data='{"script": "true"}'
+               accept="image/jpeg">
+      </form>
+    {% endif %}
+  </div>
+  <div class="up-info">
+    <div class="up-name">{{ user_info.display_name }}</div>
+    {% if show_user_controls %}
+      <a class="edit-name" href="{{ request.url_for('auth-edit-name') }}">
+        [change name]
+      </a>
+    {% endif %}
+    <div class="up-profile">
+      {% if user_info.profile %}
+        {{ user_info.profile|escapeandbreak|urlize }}
+      {% else %}
+        A photographer.
+      {% endif %}
+    </div>
+    {% if show_user_controls  %}
+      <a class="edit-profile" href="{{ request.url_for('auth-edit-profile') }}">
+        [change profile]
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+{% elif special %}
+
+{########################## SPECIAL LISTS  #########################}
+
+<div id="content-column">
+  <div class="content-clear">
+    <div class="content-pad">
+      <h1>{{ special|title }} Photographs</h1>
+      <div class="controls">
+        <div class="close control"></div>
+        <div class="minimize control"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="content-clear">
+    <div class="content-pad">
+      <ol class="thumbnails">
+        {% for image in images %}
+          <li>
+            <a {% if user_info -%}
+                 href="{{ request.url_for('images-usershow', 
+                           map_username=user_info['name'], 
+                           colkey=image.collection.url_key, 
+                           image_key=image.key) }}"
+               {%- else -%}
+                 href="{{ request.url_for('images-show', 
+                             colkey=image.collection.url_key,
+                             image_key=image.key) }}"
+               {%- endif -%}>
+              <img src="{{ image.url('thumb') }}" alt="loading..">
+            </a>
+          </li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="content-clear"></div>
+</div>
+
+<div id="content-minimized">
+  <div class="icon minimized-icon"></div>
+  <span class="minimized-name">{{ special|title }}</span>
+</div>
+
+{% endif %}
+
+

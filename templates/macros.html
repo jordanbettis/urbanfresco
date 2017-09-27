@@ -1,0 +1,62 @@
+{% macro form_errors(form, errors) -%}
+  {% if errors or form.errors %}
+  <div class="form-errors">
+    There was a problem with your submission:
+    {% if errors %}
+      <ul>
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+  {% endif %}
+{%- endmacro %}
+
+{% macro field(field) -%}
+<div class="form-field {% if field.errors %}error-field{% endif %}">
+  {{ field.label }}
+  {{ field }}
+  {% if field.errors %}
+    <ol class="form-field-errors">
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro checkbox_field(field) -%}
+<div class="form-field {% if field.errors %}error-field{% endif %}">
+  {{ field }}
+  {{ field.label }}
+  {% if field.errors %}
+    <ol class="form-field-errors">
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{# create a form submit button and, if it's an ajax request,
+   also a cancel button; 'value' is the value attribute of
+   the submit button #}
+{% macro submit(value, request) -%}
+  <button type="submit">{{ value }}</button>
+  {% if request.headers["x-ajax"] %}
+    <button type="button" class="cancel">Cancel</button>
+  {% endif %}
+{%- endmacro %}
+
+{# print a boolean in javascript format #}
+{% macro jsboolean(bool) -%}
+  {%- if bool -%}
+    true
+  {%- else -%}
+    false
+  {%- endif -%}
+{%- endmacro %}
+

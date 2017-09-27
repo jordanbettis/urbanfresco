@@ -1,0 +1,16 @@
+{% extends "popup-base.html" %}
+{% import "macros.html" as macros %}
+
+{% block title %}Change Name{% endblock %}
+
+{% block popup_content %}
+<h1>Change Name</h1>
+<div class="form">
+  {{ macros.form_errors(form, errors) }}
+  <form method="POST" action="{{ request.path_qs }}">
+    {{ csrf_token("form") }}
+    {{ macros.field(form.full_name) }}
+    {{ macros.submit("Change", request) }}
+  </form>
+</div>
+{% endblock %}

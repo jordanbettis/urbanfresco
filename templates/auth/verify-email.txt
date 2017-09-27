@@ -1,0 +1,6 @@
+
+To complete your verification, please go here:
+
+{{ request.host_url -}}
+{{- request.url_for("auth-confirm", key=request.user.data['verify-key']) }}
+

@@ -1,0 +1,22 @@
+{% extends "popup-base.html" %}
+{% import "macros.html" as macros %}
+
+{% block title %}Photograph Tools{% endblock %}
+
+{% block popup_content %}
+<h1>Tools</h1>
+<div class="manage-image">
+  <a class="button"
+     href="{{ request.url_for('images-manage-location', image_key=request.GET.key) }}">
+    Change Location
+  </a>
+  <a class="button change-description"
+     href="{{ request.url_for('images-description', key=request.GET.key) }}">
+    Change Description
+  </a>
+  <a class="button delete-photograph"
+     href="javascript:void(0);">
+    Delete Photograph
+  </a>
+</div>
+{% endblock %}

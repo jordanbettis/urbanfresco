@@ -1,0 +1,129 @@
+{% macro layer(name, table) %}
+  <Layer name="{{ name }}" status="on" srs="{{ srs }}">
+    <StyleName>{{ name }}</StyleName>
+    <Datasource>
+      <Parameter name="type">postgis</Parameter>
+      <Parameter name="host">localhost</Parameter>
+      <Parameter name="dbname">{{ db['db'] }}</Parameter>
+      <Parameter name="user">{{ db['user'] }}</Parameter>      
+      <Parameter name="password">{{ db['pass'] }}</Parameter>
+      <Parameter name="table">{{ table }}</Parameter>
+      <Parameter name="estimate_extent">true</Parameter>
+    </Datasource>
+  </Layer>
+{%- endmacro %}
+
+{% macro style(name, rule) %}
+  <Style name="{{ name }}">
+    <Rule>
+      {{ rule }}
+    </Rule>
+  </Style>
+{%- endmacro %}
+  
+{% macro linestyle(name, color, width, opacity="1.0", style="round") %}
+  <Style name="{{ name }}">
+    <Rule>
+      <LineSymbolizer stroke="{{ color }}" stroke-width="{{ width * meters }}"
+                      stroke-opacity="{{ opacity }}" stroke-linejoin="{{ style }}"
+                      stroke-linecap="{{ style }}" />
+    </Rule>
+  </Style>
+{%- endmacro %}
+  
+{% macro polygonstyle(name, color, opacity="1.0") %}
+  <Style name="{{ name }}">
+    <Rule>
+      <PolygonSymbolizer fill="{{ color }}" fill-opacity="{{ opacity }}" />
+    </Rule>
+  </Style>  
+{%- endmacro %}
+
+{% macro polygonstyle(name, color, opacity="1.0") %}
+  <Style name="{{ name }}">
+    <Rule>
+      <PolygonSymbolizer fill="{{ color }}" fill-opacity="{{ opacity }}" />
+    </Rule>
+  </Style>  
+{%- endmacro %}
+  
+{% macro pointstyle(name, color, width, height, opacity="1.0") %}
+  <Style name="{{ name }}">
+    <Rule>
+      <PointSymbolizer fill="{{ color }}" fill-opacity="{{ opacity }}" />
+    </Rule>
+  </Style>  
+{%- endmacro %}
+  
+<!DOCTYPE Map>
+<Map srs="{{ srs }}" background-color="#1a2c52" minimum-version="0.7.2">
+
+
+  {{ polygonstyle("land", "#1a1a1a") }}
+  <Layer name="land" status="on" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over">
+    <StyleName>land</StyleName>
+    <Datasource>
+      <Parameter name="type">shape</Parameter>
+      <Parameter name="file">{{ coastline }}</Parameter>
+    </Datasource>
+  </Layer>
+
+  {{ polygonstyle("natural", "#1a2c52") }}
+  {{ layer('natural', "(select way from planet_osm_polygon where \"natural\" in (
+            'wetland', 'bay', 'wetlands', 'water', 'swamp', 'marsh')) as polygon") }}
+
+  {{ polygonstyle("park", "#0a3100") }}
+  {{ layer("park", "(select way from planet_osm_polygon where leisure in ('garden',
+                     'common', 'nature_reserve', 'park', 'dog_park', 'golf_course')) as polygon") }}
+  
+  {{ polygonstyle("greenspace", "#072000") }}
+  {{ layer("greenspace", "(select way from planet_osm_polygon where landuse in ('meadow',
+           'recreation_ground', 'conservation', 'village_green', 'golf', 'grass', 'cemetery',
+           'recreation_ground', 'forest', 'greenhouse_horticulture')) as polygon") }}
+
+  {{ polygonstyle("waterway", "#1a2c52") }}
+  {{ layer('waterway', '(select way from planet_osm_polygon where waterway is not null) as polygon') }}
+  
+  {{ polygonstyle("water-amenity", "#1a2c52") }}
+  {{ layer('water-amenity', "(select way from planet_osm_polygon where amenity in ('fountain', 'swimming_pool')) as polygon") }}
+
+  {{ linestyle("breakwater", "#424242", 20) }}
+  {{ layer('breakwater', "(select way from planet_osm_line where waterway = 'dam') as polygon") }}
+
+  {{ polygonstyle("building", "#424242") }}
+  {{ layer('building', '(select way from planet_osm_polygon where "building" is not null) as polygon') }}
+  {{ linestyle("building-outline", "#555555", 5) }}
+  {{ layer('building-outline', '(select way from planet_osm_polygon where "building" is not null) as polygon') }}
+  
+  {{ linestyle("highway", "black", 19) }}
+  {{ layer('highway', "(select way from planet_osm_line where highway in ('unclassified',
+           'motorway', 'tertiary', 'trunk', 'tertiary_link', 'motorway_link', 'secondary_link',
+           'primary_link', 'crossing', 'truck_link', 'living_street', 'residential',
+           'road', 'primary', 'secondary', 'raceway')) as roads") }}
+
+  {{ linestyle("path", "black", 5) }}
+  {{ layer('path', "(select way from planet_osm_line where highway in ('track', 'footway',
+           'steps', 'service', 'pedestrian', 'cycleway', 'cycleway; footway')) as paths") }}
+
+  {{ layer('subway-path', "(select way from planet_osm_line where railway = 'subway') as railway") }}
+  {{ linestyle('subway', '#0b0b0b', 8) }}
+  {{ layer('subway', "(select way from planet_osm_line where railway = 'subway') as railway") }}
+
+  {{ linestyle('railway', '#0b0b0b', 5) }}
+  {{ layer('railway', "(select way from planet_osm_line where railway is not null and railway not in (
+                        'subway', 'platform')) as railway") }}
+
+  <Style name="station-marker">
+    <Rule><MarkersSymbolizer fill="#141414" width="{{ 17 * meters }}"/></Rule>
+  </Style>
+  
+  {{ layer('station-marker', "(select way from planet_osm_point where railway = 'station') as point") }}
+  {{ linestyle('subway-path', '#000000', 9) }}
+
+  {{ linestyle('admin', '#ffffff', 5) }}
+  {{ layer('admin', "(select way from planet_osm_polygon where boundary = 'administrative') as admin") }}
+
+  {{ linestyle('nh', '#ff5223', 5) }}
+  {{ layer('nh', "(select way from nh_images_collection) as polygon") }}
+  
+</Map>
